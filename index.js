@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config();   // <- ini untuk .env
+require('./db');              // <- ini untuk connect ke database
 
 const app = express();
 const PORT = 5000;
