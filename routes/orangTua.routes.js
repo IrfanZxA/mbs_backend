@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const verifyOrangTua = require("../middleware/verifyOrangTua");
 
 const {
   getAllOrangTua,
@@ -7,8 +8,15 @@ const {
   addOrangTua,
   updateOrangTua,
   deleteOrangTua,
+  loginOrangTua,
+  getProfileOrangTua,
 } = require("../controllers/orangTua.controller");
 
+router.post("/login", loginOrangTua);
+
+router.use(verifyOrangTua);
+
+router.get("/profile", getProfileOrangTua);
 router.get("/", getAllOrangTua);
 router.get("/:id", getOrangTuaById);
 router.post("/", addOrangTua);

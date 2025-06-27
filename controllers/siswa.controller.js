@@ -132,10 +132,67 @@ const deleteSiswa = async (req, res) => {
   }
 };
 
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+// Login siswa
+const loginSiswa = async (req, res) => {
+  const { username, password } = req.body;
+
+  try {
+    const result = await db.query("SELECT * FROM siswa WHERE username = $1", [username]);
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: "Username tidak ditemukan" });
+    }
+
+    const siswa = result.rows[0];
+    const passwordMatch = await bcrypt.compare(password, siswa.password_hash);
+
+    if (!passwordMatch) {
+      return res.status(401).json({ error: "Password salah" });
+    }
+
+    const token = jwt.sign({ id: siswa.id }, process.env.JWT_SECRET, { expiresIn: "1d" });
+
+    res.json({
+      token,
+      siswa: {
+        id: siswa.id,
+        nama: siswa.nama_lengkap,
+        username: siswa.username,
+      },
+    });
+  } catch (err) {
+    console.error("Login siswa gagal:", err);
+    res.status(500).json({ error: "Login gagal" });
+  }
+};
+
+// Ambil profil siswa dari token
+const getProfileSiswa = async (req, res) => {
+  const siswaId = req.siswa.id;
+
+  try {
+    const result = await db.query("SELECT id, username, nama_lengkap FROM siswa WHERE id = $1", [siswaId]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Siswa tidak ditemukan" });
+    }
+
+    res.json({ siswa: result.rows[0] });
+  } catch (err) {
+    console.error("Error ambil profil siswa", err);
+    res.status(500).json({ error: "Gagal ambil profil siswa" });
+  }
+};
+
 module.exports = {
   getAllSiswa,
   getSiswaById,
   addSiswa,
   updateSiswa,
   deleteSiswa,
+  loginSiswa,
+  getProfileSiswa,
 };

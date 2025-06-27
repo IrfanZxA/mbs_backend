@@ -33,7 +33,12 @@ app.use("/orang-tua", orangTuaRoutes);
 app.use("/raport", raportRoutes);
 app.use("/admin", adminRoutes);
 
-const PORT = 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
+const os = require("os");
+const ip = Object.values(os.networkInterfaces())
+  .flat()
+  .find((i) => i.family === "IPv4" && !i.internal).address;
+
+app.listen(5000, () => {
+  console.log(`Server running at http://localhost:5000`);
 });
+
