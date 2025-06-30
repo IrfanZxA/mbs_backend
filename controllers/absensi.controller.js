@@ -82,10 +82,86 @@ const deleteAbsensi = async (req, res) => {
   }
 };
 
+// ➕ Tambah banyak absensi sekaligus
+const addAbsensiBulk = async (req, res) => {
+  const absensiList = req.body; // array of { siswa_id, jadwal_id, tanggal, status }
+
+  if (!Array.isArray(absensiList)) {
+    return res.status(400).json({ error: "Data harus berupa array" });
+  }
+
+  const client = await db.connect();
+  try {
+    await client.query("BEGIN");
+
+    for (const absensi of absensiList) {
+      const { siswa_id, jadwal_id, tanggal, status } = absensi;
+
+      await client.query(
+        `INSERT INTO absensi (siswa_id, jadwal_id, tanggal, status)
+         VALUES ($1, $2, $3, $4)`,
+        [siswa_id, jadwal_id, tanggal, status]
+      );
+    }
+
+    await client.query("COMMIT");
+    res.status(201).json({ message: "Semua absensi berhasil ditambahkan" });
+  } catch (err) {
+    await client.query("ROLLBACK");
+    console.error("Error bulk tambah absensi", err);
+    res.status(500).json({ error: "Gagal tambah data absensi" });
+  } finally {
+    client.release();
+  }
+};
+
+// GET /absensi/siswa/:kelas_id
+const getSiswaByKelas = async (req, res) => {
+  const { kelas_id } = req.params;
+  try {
+    const result = await db.query(`
+      SELECT id, nama_lengkap FROM siswa WHERE kelas_id = $1 ORDER BY nama_lengkap ASC
+    `, [kelas_id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error ambil siswa by kelas", err);
+    res.status(500).json({ error: "Gagal ambil siswa" });
+  }
+};
+
+const getRekapAbsensiByKelas = async (req, res) => {
+  const { kelas_id } = req.params;
+  try {
+    const result = await db.query(`
+      SELECT 
+        s.id AS siswa_id,
+        s.nama_lengkap,
+        COUNT(*) FILTER (WHERE a.status = 'Hadir') AS hadir,
+        COUNT(*) FILTER (WHERE a.status = 'Izin') AS izin,
+        COUNT(*) FILTER (WHERE a.status = 'Sakit') AS sakit,
+        COUNT(*) FILTER (WHERE a.status = 'Alpha') AS alpha
+      FROM siswa s
+      LEFT JOIN absensi a ON a.siswa_id = s.id
+      WHERE s.kelas_id = $1
+      GROUP BY s.id
+      ORDER BY s.nama_lengkap
+    `, [kelas_id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Error rekap absensi", err);
+    res.status(500).json({ error: "Gagal rekap absensi" });
+  }
+};
+
 module.exports = {
   getAllAbsensi,
   getAbsensiById,
   addAbsensi,
   updateAbsensi,
   deleteAbsensi,
+  addAbsensiBulk,
+  getSiswaByKelas,
+  getRekapAbsensiByKelas,
 };
