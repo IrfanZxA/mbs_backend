@@ -10,13 +10,24 @@ const {
   updateSiswa,
   deleteSiswa,
   getProfileSiswa,
+  getTugasSiswa,
+  getJadwalHariIni,
+  getJadwalMingguan,
+  cekUsername,
 } = require("../controllers/siswa.controller");
 
+// ✅ Ini route publik, harus sebelum verifySiswa
 router.post("/login", loginSiswa);
+router.get("/cek-username/:username", cekUsername);
 
+// 🔐 Semua route di bawah ini butuh token siswa
 router.use(verifySiswa);
 
 router.get("/profile", getProfileSiswa);
+router.get("/tugas", getTugasSiswa);
+router.get("/jadwal-hari-ini", getJadwalHariIni);
+router.get("/jadwal-mingguan", getJadwalMingguan);
+
 router.get("/", getAllSiswa);
 router.get("/:id", getSiswaById);
 router.post("/", addSiswa);

@@ -13,6 +13,7 @@ const absensiRoutes = require("./routes/absensi.routes");
 const orangTuaRoutes = require("./routes/orangTua.routes");
 const raportRoutes = require("./routes/raport.routes");
 const adminRoutes = require("./routes/admin.routes");
+const tugasRoutes = require('./routes/tugas.routes');
 
 app.use(cors());
 app.use(express.json());
@@ -32,6 +33,9 @@ app.use("/absensi", absensiRoutes);
 app.use("/orang-tua", orangTuaRoutes);
 app.use("/raport", raportRoutes);
 app.use("/admin", adminRoutes);
+app.use('/tugas', tugasRoutes);
+app.use("/uploads", express.static("uploads"));
+
 
 const os = require("os");
 const ip = Object.values(os.networkInterfaces())

@@ -78,10 +78,21 @@ const deleteMateri = async (req, res) => {
   }
 };
 
+const addMateriToDB = async ({ guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload }) => {
+  const result = await db.query(
+    `INSERT INTO materi (
+      guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload
+    ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+    [guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   getAllMateri,
   getMateriById,
   addMateri,
   updateMateri,
   deleteMateri,
+  addMateriToDB,
 };
