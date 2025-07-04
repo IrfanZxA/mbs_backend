@@ -14,6 +14,8 @@ const orangTuaRoutes = require("./routes/orangTua.routes");
 const raportRoutes = require("./routes/raport.routes");
 const adminRoutes = require("./routes/admin.routes");
 const tugasRoutes = require('./routes/tugas.routes');
+const authSiswaRoutes = require("./routes/authSiswa.routes");
+
 
 app.use(cors());
 app.use(express.json());
@@ -24,16 +26,18 @@ app.get("/", (req, res) => {
 
 // ⬅️ Tambahkan ini, pastikan letaknya setelah express.json()
 app.use("/guru", guruRoutes);
-app.use("/siswa", siswaRoutes);
+app.use("/auth/siswa", authSiswaRoutes); // hanya untuk login siswa
+app.use("/siswa", siswaRoutes); // ini route yang pakai token
 app.use("/kelas", kelasRoutes);
 app.use("/mapel", mapelRoutes);
 app.use("/materi", materiRoutes);
 app.use("/nilai", nilaiRoutes);
 app.use("/absensi", absensiRoutes);
-app.use("/orang-tua", orangTuaRoutes);
+app.use("/orang-tua", orangTuaRoutes);  
 app.use("/raport", raportRoutes);
 app.use("/admin", adminRoutes);
 app.use('/tugas', tugasRoutes);
+
 app.use("/uploads", express.static("uploads"));
 
 

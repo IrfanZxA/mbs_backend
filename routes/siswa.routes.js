@@ -1,37 +1,32 @@
 const express = require("express");
 const router = express.Router();
+const siswaController = require('../controllers/siswa.controller');
 const verifySiswa = require("../middleware/verifySiswa");
+const upload = require('../middleware/upload'); 
+
 
 const {
   loginSiswa,
-  getAllSiswa,
-  getSiswaById,
-  addSiswa,
-  updateSiswa,
-  deleteSiswa,
   getProfileSiswa,
   getTugasSiswa,
   getJadwalHariIni,
   getJadwalMingguan,
-  cekUsername,
+  getMateriSiswa,
+  getMateriByKodeMapel,
 } = require("../controllers/siswa.controller");
 
-// ✅ Ini route publik, harus sebelum verifySiswa
-router.post("/login", loginSiswa);
-router.get("/cek-username/:username", cekUsername);
+router.post('/login', loginSiswa);
 
-// 🔐 Semua route di bawah ini butuh token siswa
-router.use(verifySiswa);
+router.get("/profile", verifySiswa, getProfileSiswa);
+router.get("/tugas", verifySiswa, getTugasSiswa);
+router.get("/jadwal-hari-ini", verifySiswa, getJadwalHariIni);
+router.get("/jadwal-mingguan", verifySiswa, getJadwalMingguan);
+router.get('/presensi', verifySiswa, siswaController.getPresensiSiswa);
+router.post('/ajukan-izin', verifySiswa, upload.single('file'), siswaController.ajukanIzin);
+router.get('/materi', verifySiswa, getMateriSiswa);
+router.get("/materi/:kode_mapel", verifySiswa, getMateriByKodeMapel);
+router.get('/materi/detail/:id', verifySiswa, siswaController.getDetailMateri);
 
-router.get("/profile", getProfileSiswa);
-router.get("/tugas", getTugasSiswa);
-router.get("/jadwal-hari-ini", getJadwalHariIni);
-router.get("/jadwal-mingguan", getJadwalMingguan);
 
-router.get("/", getAllSiswa);
-router.get("/:id", getSiswaById);
-router.post("/", addSiswa);
-router.put("/:id", updateSiswa);
-router.delete("/:id", deleteSiswa);
 
 module.exports = router;

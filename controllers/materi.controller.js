@@ -1,5 +1,26 @@
 const db = require("../db");
 
+// 🔼 Tambah materi (upload file)
+const addMateri = async (req, res) => {
+  const guru_id = req.user.id; // ✅ Ambil dari token guru
+  const { jadwal_id, judul, deskripsi } = req.body;
+  const file_url = req.file?.path;
+  const tanggal_upload = new Date();
+
+  try {
+    const result = await db.query(
+      `INSERT INTO materi (
+        guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload
+      ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+      [guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error tambah materi", err);
+    res.status(500).json({ error: "Gagal tambah materi" });
+  }
+};
+
 // 🔍 Ambil semua materi
 const getAllMateri = async (req, res) => {
   try {
@@ -16,7 +37,8 @@ const getMateriById = async (req, res) => {
   const { id } = req.params;
   try {
     const result = await db.query("SELECT * FROM materi WHERE id = $1", [id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: "Materi tidak ditemukan" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Materi tidak ditemukan" });
     res.json(result.rows[0]);
   } catch (err) {
     console.error("Error ambil materi by ID", err);
@@ -24,27 +46,11 @@ const getMateriById = async (req, res) => {
   }
 };
 
-// ➕ Tambah materi
-const addMateri = async (req, res) => {
-  const { guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload } = req.body;
-  try {
-    const result = await db.query(
-      `INSERT INTO materi (
-        guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload
-      ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-      [guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload]
-    );
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error("Error tambah materi", err);
-    res.status(500).json({ error: "Gagal tambah materi" });
-  }
-};
-
 // ✏️ Edit materi
 const updateMateri = async (req, res) => {
   const { id } = req.params;
   const { guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload } = req.body;
+
   try {
     const result = await db.query(
       `UPDATE materi SET 
@@ -57,7 +63,8 @@ const updateMateri = async (req, res) => {
       WHERE id = $7 RETURNING *`,
       [guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload, id]
     );
-    if (result.rows.length === 0) return res.status(404).json({ error: "Materi tidak ditemukan" });
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Materi tidak ditemukan" });
     res.json(result.rows[0]);
   } catch (err) {
     console.error("Error update materi", err);
@@ -68,9 +75,15 @@ const updateMateri = async (req, res) => {
 // ❌ Hapus materi
 const deleteMateri = async (req, res) => {
   const { id } = req.params;
+
   try {
-    const result = await db.query("DELETE FROM materi WHERE id = $1 RETURNING *", [id]);
-    if (result.rows.length === 0) return res.status(404).json({ error: "Materi tidak ditemukan" });
+    const result = await db.query(
+      "DELETE FROM materi WHERE id = $1 RETURNING *",
+      [id]
+    );
+    if (result.rows.length === 0)
+      return res.status(404).json({ error: "Materi tidak ditemukan" });
+
     res.json({ message: "Materi berhasil dihapus", materi: result.rows[0] });
   } catch (err) {
     console.error("Error hapus materi", err);
@@ -78,21 +91,10 @@ const deleteMateri = async (req, res) => {
   }
 };
 
-const addMateriToDB = async ({ guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload }) => {
-  const result = await db.query(
-    `INSERT INTO materi (
-      guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload
-    ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-    [guru_id, jadwal_id, judul, deskripsi, file_url, tanggal_upload]
-  );
-  return result.rows[0];
-};
-
 module.exports = {
+  addMateri,
   getAllMateri,
   getMateriById,
-  addMateri,
   updateMateri,
   deleteMateri,
-  addMateriToDB,
 };

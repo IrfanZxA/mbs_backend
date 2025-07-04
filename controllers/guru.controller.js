@@ -162,13 +162,15 @@ const loginGuru = async (req, res) => {
     const token = jwt.sign({ id: guru.id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 
     res.json({
-      token,
-      guru: {
-        id: guru.id,
-        nama: guru.nama_lengkap,
-        username: guru.username,
-      },
-    });
+  token,
+  guru: {
+    id: guru.id,
+    nama: guru.nama_lengkap,
+    username: guru.username,
+    mapel_id: guru.mapel_id, 
+  },
+});
+
   } catch (err) {
     console.error("Login guru gagal:", err);
     res.status(500).json({ error: "Login gagal" });
@@ -179,13 +181,17 @@ const getProfileGuru = async (req, res) => {
   const guruId = req.user.id;
 
   try {
-    const result = await db.query("SELECT id, username, nama_lengkap FROM guru WHERE id = $1", [guruId]);
+    const result = await db.query(
+      `SELECT id, username, nama_lengkap FROM guru WHERE id = $1`,
+      [guruId]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: "Guru tidak ditemukan" });
     }
 
-    res.json({ guru: result.rows[0] });
+    // 🔥 Kirim langsung data gurunya
+    res.json(result.rows[0]);
   } catch (err) {
     console.error("Error ambil profil guru", err);
     res.status(500).json({ error: "Gagal ambil profil guru" });
@@ -282,6 +288,87 @@ const getJadwalHariIniGuru = async (req, res) => {
   }
 };
 
+// 🔍 Ambil semua pengumpulan tugas berdasarkan tugasId
+const getPengumpulanTugas = async (req, res) => {
+  const { tugasId } = req.params;
+
+  try {
+    const result = await db.query(`
+SELECT pt.*, s.nama_lengkap, k.nama_kelas, t.judul, n.nilai
+FROM pengumpulan_tugas pt
+JOIN siswa s ON pt.siswa_id = s.id
+LEFT JOIN kelas k ON s.kelas_id = k.id
+LEFT JOIN tugas t ON pt.tugas_id = t.id
+LEFT JOIN nilai n ON n.tugas_id = pt.tugas_id AND n.siswa_id = pt.siswa_id
+WHERE pt.tugas_id = $1
+ORDER BY pt.tanggal_kumpul DESC;
+    `, [tugasId]);
+
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Gagal ambil pengumpulan tugas", error);
+    res.status(500).json({ error: "Gagal ambil data pengumpulan tugas" });
+  }
+};
+
+// controllers/guru.controller.js
+const getJadwalGuru = async (req, res) => {
+  const guruId = req.user.id;
+
+  try {
+    const result = await db.query(`
+      SELECT j.hari, j.jam_mulai, j.jam_selesai,
+             k.nama_kelas, m.nama_mapel
+      FROM jadwal j
+      JOIN kelas k ON j.kelas_id = k.id
+      JOIN mapel m ON j.mapel_id = m.id
+      WHERE j.guru_id = $1
+      ORDER BY 
+        CASE 
+          WHEN j.hari = 'Senin' THEN 1
+          WHEN j.hari = 'Selasa' THEN 2
+          WHEN j.hari = 'Rabu' THEN 3
+          WHEN j.hari = 'Kamis' THEN 4
+          WHEN j.hari = 'Jumat' THEN 5
+          ELSE 6
+        END,
+        j.jam_mulai
+    `, [guruId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Gagal ambil jadwal guru:', err);
+    res.status(500).json({ error: 'Gagal ambil jadwal' });
+  }
+};
+
+const getJadwalUjian = async (req, res) => {
+  const { kelasId } = req.params;
+
+  try {
+    const result = await db.query(`
+      SELECT 
+        to_char(ju.tanggal, 'FMDay, DD Mon YYYY') AS hari,
+        ju.tanggal,
+        ju.jam_mulai,
+        ju.jam_selesai,
+        m.nama_mapel,
+        g.nama_lengkap AS pengawas,
+        ju.keterangan
+      FROM jadwal_ujian ju
+      JOIN mapel m ON ju.mapel_id = m.id
+      JOIN guru g ON ju.pengawas_id = g.id
+      WHERE ju.kelas_id = $1
+      ORDER BY ju.tanggal, ju.jam_mulai
+    `, [kelasId]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Gagal ambil jadwal ujian:', err);
+    res.status(500).json({ error: 'Gagal ambil jadwal ujian' });
+  }
+};
+
 module.exports = {
   getAllGuru,
   getGuruById,
@@ -294,4 +381,7 @@ module.exports = {
   getJumlahSiswaAktif,
   getRataRataNilaiPerKelas,
   getJadwalHariIniGuru,
+  getPengumpulanTugas,
+  getJadwalGuru,
+  getJadwalUjian,
 };
