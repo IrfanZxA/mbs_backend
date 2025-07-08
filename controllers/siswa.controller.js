@@ -571,6 +571,40 @@ const getDetailMateri = async (req, res) => {
   }
 };
 
+const getTugasByMateriId = async (req, res) => {
+  const siswaId = req.user.id;
+  const rawId = req.params.materiId;
+  const materiId = parseInt(rawId);
+
+  if (isNaN(materiId)) {
+    return res.status(400).json({ error: `materiId tidak valid: ${rawId}` });
+  }
+
+  try {
+    const tugasResult = await db.query(`
+      SELECT 
+        t.id,
+        t.judul,
+        t.deskripsi,
+        t.tanggal_deadline,
+        t.poin,
+        t.materi_id,
+        ts.file_url AS file_kumpul,
+        ts.tanggal_kumpul
+      FROM tugas t
+      LEFT JOIN pengumpulan_tugas ts 
+        ON t.id = ts.tugas_id AND ts.siswa_id = $1
+      WHERE t.materi_id = $2
+      ORDER BY t.tanggal_deadline ASC
+    `, [siswaId, materiId]);
+
+    res.json(tugasResult.rows);
+  } catch (err) {
+    console.error("Gagal ambil tugas berdasarkan materi:", err);
+    res.status(500).json({ error: "Gagal ambil data tugas" });
+  }
+};
+
 
 module.exports = {
   addMateri,
@@ -602,4 +636,5 @@ module.exports = {
   getMateriSiswa,
   getMateriByKodeMapel,
   getDetailMateri,
+  getTugasByMateriId,
 };

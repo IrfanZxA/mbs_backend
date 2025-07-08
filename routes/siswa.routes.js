@@ -13,6 +13,7 @@ const {
   getJadwalMingguan,
   getMateriSiswa,
   getMateriByKodeMapel,
+  getTugasByMateriId,
 } = require("../controllers/siswa.controller");
 
 router.post('/login', loginSiswa);
@@ -26,6 +27,8 @@ router.post('/ajukan-izin', verifySiswa, upload.single('file'), siswaController.
 router.get('/materi', verifySiswa, getMateriSiswa);
 router.get("/materi/:kode_mapel", verifySiswa, getMateriByKodeMapel);
 router.get('/materi/detail/:id', verifySiswa, siswaController.getDetailMateri);
+router.get("/materi/:materiId/tugas", verifySiswa, getTugasByMateriId);
+
 
 
 
