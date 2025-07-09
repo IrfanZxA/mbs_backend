@@ -11,7 +11,10 @@ const verifySiswa = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret");
-    req.user = decoded; // ✅ taruh hasil decode di req.user
+
+    // ✅ Ini HARUS ADA
+    req.user = decoded;
+
     next();
   } catch (err) {
     return res.status(403).json({ error: "Token tidak valid" });
