@@ -13,13 +13,20 @@ const {
   getSiswaByKelas,
   getRekapAbsensiByKelas,
   getAbsensiGuruByNama,
+  getStatistikSiswa,
+  getStatistikGuru,
+  getRekapAbsensiSiswa
 } = absensiController;
 
-// ✅ Route khusus (harus di atas /:id)
+// ✅ Route khusus (duluan)
 router.get("/guru", getAbsensiGuruByNama);
 router.get("/rekap/:kelas_id", getRekapAbsensiByKelas);
-router.get("/rekap-siswa", absensiController.getRekapAbsensiSiswa);
+router.get("/rekap-siswa", getRekapAbsensiSiswa);
 router.get("/siswa/:kelas_id", verifyGuru, getSiswaByKelas);
+
+// ✅ Tambahan untuk dashboard akademik
+router.get("/statistik-siswa", getStatistikSiswa);
+router.get("/statistik-guru", getStatistikGuru);
 
 // ✅ Route umum
 router.get("/", getAllAbsensi);

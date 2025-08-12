@@ -3,7 +3,7 @@ const router = express.Router();
 const nilaiController = require("../controllers/nilai.controller");
 const verifyGuru = require("../middleware/verifyGuru");
 const verifySiswa = require("../middleware/verifySiswa");
-const verifyAdmin = require("../middleware/auth.middleware");
+const {verifyToken, verifyAdmin } = require("../middleware/auth.middleware");
 
 const {
   getAllNilai,
@@ -22,8 +22,8 @@ const {
 // ========================
 
 // --- Untuk Admin (lihat laporan dari dashboard) ---
-router.get("/laporan-mapel", verifyAdmin, getLaporanNilaiMapel);
-router.get("/rekap", verifyAdmin, getRekapNilaiByKelasSemester);
+router.get("/laporan-mapel",verifyToken, verifyAdmin, getLaporanNilaiMapel);
+router.get("/rekap", verifyToken, verifyAdmin, getRekapNilaiByKelasSemester);
 
 // --- Untuk Guru ---
 router.get("/rekap/:kelasId", verifyGuru, getRekapNilaiByKelas);

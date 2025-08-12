@@ -1,7 +1,7 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const verifyAdmin = (req, res, next) => {
+const verifyToken = (req, res, next) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
@@ -11,17 +11,19 @@ const verifyAdmin = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // ✅ Tambahkan pengecekan role
-    if (decoded.role !== "admin") {
-      return res.status(403).json({ error: "Akses hanya untuk admin" });
-    }
-
-    req.admin = decoded; // Lolos, simpan data ke request
+    req.user = decoded; // simpan hasil decode token di req.user
     next();
   } catch (err) {
     return res.status(403).json({ error: "Token tidak valid" });
   }
 };
 
-module.exports = verifyAdmin;
+const verifyAdmin = (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return res.status(403).json({ error: "Akses hanya untuk admin" });
+  }
+  req.admin = req.user;  // Tambahkan ini biar req.admin ada
+  next();
+};
+
+module.exports = { verifyToken, verifyAdmin };

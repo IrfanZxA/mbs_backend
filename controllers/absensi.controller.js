@@ -211,6 +211,41 @@ const getRekapAbsensiSiswa = async (req, res) => {
   }
 };
 
+// 📊 Statistik total kehadiran siswa untuk dashboard (gabungan semua siswa)
+const getStatistikSiswa = async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE status = 'Hadir') AS hadir,
+        COUNT(*) FILTER (WHERE status = 'Izin') AS izin,
+        COUNT(*) FILTER (WHERE status = 'Sakit' OR status = 'Alpha') AS tidak_hadir
+      FROM absensi
+    `);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error ambil statistik siswa:", err);
+    res.status(500).json({ error: "Gagal ambil statistik siswa" });
+  }
+};
+
+// 📊 Statistik total kehadiran guru untuk dashboard (gabungan semua guru)
+const getStatistikGuru = async (req, res) => {
+  try {
+    const result = await db.query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE status = 'Hadir') AS hadir,
+        COUNT(*) FILTER (WHERE status = 'Izin') AS izin,
+        COUNT(*) FILTER (WHERE status = 'Sakit' OR status = 'Alpha') AS tidak_hadir
+      FROM absensi_guru
+    `);
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Error ambil statistik guru:", err);
+    res.status(500).json({ error: "Gagal ambil statistik guru" });
+  }
+};
+
+
 module.exports = {
   getAllAbsensi,
   getAbsensiById,
@@ -222,4 +257,6 @@ module.exports = {
   getRekapAbsensiByKelas,
   getAbsensiGuruByNama,
   getRekapAbsensiSiswa,
+  getStatistikSiswa,
+  getStatistikGuru,
 };

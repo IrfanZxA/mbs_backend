@@ -1,40 +1,50 @@
 const express = require("express");
 const router = express.Router();
 
-const adminController = require("../controllers/admin.controller"); // ✅ Tambahkan ini!
-
+// ✅ Import controller admin
 const {
   loginAdmin,
   getAdminProfile,
-  nonaktifkanSiswa
-} = adminController;
+  nonaktifkanSiswa,
+  addGuruWithJadwal
+} = require("../controllers/admin.controller");
 
+// ✅ Import controller siswa
 const {
   getAllSiswa,
   getSiswaById,
   addSiswa,
   updateSiswa,
-  deleteSiswa,
+  deleteSiswa
 } = require("../controllers/siswa.controller");
 
-const verifyToken = require("../middleware/auth.middleware");
-const verifyAdmin = require("../middleware/auth.middleware");
+// ✅ Import middleware
+const {
+  verifyToken,
+  verifyAdmin
+} = require("../middleware/auth.middleware");
 
-// Manajemen data siswa oleh admin
-router.get("/siswa", verifyToken, getAllSiswa);
-router.get("/siswa/:id", verifyToken, getSiswaById);
-router.post("/siswa", verifyToken, addSiswa);
-router.put("/siswa/:id", verifyToken, updateSiswa);
-router.delete("/siswa/:id", verifyToken, deleteSiswa);
+// ========================
+// 🔐 Auth & Profil Admin
+// ========================
+router.post("/login", loginAdmin);
+router.get("/profile", verifyToken, verifyAdmin, getAdminProfile);
 
-// ✅ Tambah guru
-router.post("/guru", verifyToken, adminController.addGuruWithJadwal);
+// ========================
+// 👨‍🎓 Manajemen Siswa
+// ========================
+router.get("/siswa", verifyToken, verifyAdmin, getAllSiswa);
+router.get("/siswa/:id", verifyToken, verifyAdmin, getSiswaById);
+router.post("/siswa", verifyToken, verifyAdmin, addSiswa);
+router.put("/siswa/:id", verifyToken, verifyAdmin, updateSiswa);
+router.delete("/siswa/:id", verifyToken, verifyAdmin, deleteSiswa);
 
 // ✅ Nonaktifkan akun siswa
-router.patch("/admin/siswa/:id/nonaktif", verifyAdmin, nonaktifkanSiswa);
+router.patch("/siswa/:id/nonaktif", verifyToken, verifyAdmin, nonaktifkanSiswa);
 
-// ✅ Login & Profile
-router.post("/login", loginAdmin);
-router.get("/profile", verifyToken, getAdminProfile);
+// ========================
+// 👨‍🏫 Tambah Guru & Jadwal
+// ========================
+router.post("/guru", verifyToken, verifyAdmin, addGuruWithJadwal);
 
 module.exports = router;
